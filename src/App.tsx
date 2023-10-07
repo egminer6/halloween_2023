@@ -1,6 +1,6 @@
 import "./App.css";
 import React from "react";
-import BlobDetector from "./BlobDetector";
+import BlobDetector from "./components/BlobDetector";
 import Webcam from "react-webcam";
 
 export default function App() {
