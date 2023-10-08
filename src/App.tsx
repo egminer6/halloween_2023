@@ -10,13 +10,14 @@ export default function App() {
     <>
       <h1>Blob Detection</h1>
 
+      <div style={{visibility:"collapse", width:"1cm", height: "1cm"}}>
       <Webcam
         ref={webcamRef}
         className="camera"
         mirrored
         screenshotFormat="image/png"
-        visibility="hidden"
       />
+      </div>
       <BlobDetector webcam={webcamRef} />
     </>
   );
