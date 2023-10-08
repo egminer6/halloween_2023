@@ -10,7 +10,7 @@ export default function App() {
     <>
       <h1>Blob Detection</h1>
 
-      <div style={{visibility:"collapse", width:"1cm", height: "1cm"}}>
+      <div style={{visibility:"collapse", width:"0cm", height: "0cm"}}>
       <Webcam
         ref={webcamRef}
         className="camera"

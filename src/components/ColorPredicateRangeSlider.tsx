@@ -5,7 +5,12 @@ const STEP = 1;
 const MIN = 0;
 const MAX = 255;
 
-const ColorPredicateRangeSlider: React.FC<{ rtl: boolean }> = ({ rtl }) => {
+type ColorPredicateRangeSliderProps = { rtl? : boolean };
+
+const ColorPredicateRangeSlider = ( argProps : ColorPredicateRangeSliderProps ) => {
+  const props = { rtl: false, ...argProps };
+  const rtl = props.rtl;
+
   const [values, setValues] = React.useState([100, 192]);
   return (
     <div
