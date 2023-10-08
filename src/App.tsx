@@ -5,7 +5,6 @@ import Webcam from "react-webcam";
 
 export default function App() {
   const webcamRef: React.Ref<Webcam> = React.useRef(null);
-  const imgRef: React.Ref<HTMLImageElement> = React.useRef(null);
   
   return (
     <>
@@ -16,9 +15,9 @@ export default function App() {
         className="camera"
         mirrored
         screenshotFormat="image/png"
+        visibility="hidden"
       />
-      <img className="imageSource" alt="input" ref={imgRef} />
-      <BlobDetector />
+      <BlobDetector webcam={webcamRef} />
     </>
   );
 }
