@@ -50,7 +50,9 @@ export default function BlobDetector(props: IBlobDetectorProps) {
   React.useEffect(() => {
     if ( ( webcamRef.current ) && ( cvLoaded ) ) {
       const videoSrc = webcamRef.current!.video;
-      const src = new cv.Mat(videoSrc?.height, videoSrc?.height, cv.CV_8UC4);
+      videoSrc?.play();
+
+      const src = new cv.Mat(videoSrc?.height, videoSrc?.width, cv.CV_8UC4);
       const dst = new cv.Mat();
       const cap = new cv.VideoCapture(videoSrc!);
 
@@ -60,6 +62,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
         }
 
         return new Promise<void>((resolve) => {
+          console.log(`video: ${videoSrc!.width}x${videoSrc!.height} src: ${src.cols}x${src.rows}`);
           cap.read(src);
 
           const p = {

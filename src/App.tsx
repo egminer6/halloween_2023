@@ -15,6 +15,8 @@ export default function App() {
         ref={webcamRef}
         className="camera"
         mirrored
+        width="640"
+        height="480"
       />
       </div>
       <BlobDetector webcam={webcamRef} />
