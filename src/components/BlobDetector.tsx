@@ -24,11 +24,11 @@ type ColorPredicate = {
   green_blue_max: number
 };
 
-function applyColorPredicate( src: cv.Mat, dst: cv.Mat, predicate : ColorPredicate ) {
-  const low = new cv.Mat( src.rows, src.cols, src.type(), [ predicate.red_min, predicate.green_min, predicate.blue_min, 0 ] );
-  const high = new cv.Mat( src.rows, src.cols, src.type(), [ predicate.red_max, predicate.green_max, predicate.blue_max, 255 ] );
+function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate) {
+  const low = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_min, predicate.green_min, predicate.blue_min, 0]);
+  const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max, predicate.green_max, predicate.blue_max, 255]);
 
-  cv.inRange( src, low, high, dst );
+  cv.inRange(src, low, high, dst);
 
 
   low.delete();
@@ -37,68 +37,73 @@ function applyColorPredicate( src: cv.Mat, dst: cv.Mat, predicate : ColorPredica
 
 export default function BlobDetector(props: IBlobDetectorProps) {
   const webcamRef = props.webcam;
-  const srcRef: React.Ref<HTMLImageElement> = React.useRef(null);
   const destRef: React.Ref<HTMLCanvasElement> = React.useRef(null);
 
+  const [cvLoaded, setCvLoaded] = React.useState(false);
+
+  cv['onRuntimeInitialized'] = () => {
+    console.log(`cv is loaded`);
+    console.log(cv.getBuildInformation());
+    setCvLoaded(true);
+  };
+
   React.useEffect(() => {
-    const detectColor = async () => {
-      const imageSrc = webcamRef!.current!.;
-      if (!imageSrc) return;
+    if ( ( webcamRef.current ) && ( cvLoaded ) ) {
+      const videoSrc = webcamRef.current!.video;
+      const src = new cv.Mat(videoSrc?.height, videoSrc?.height, cv.CV_8UC4);
+      const dst = new cv.Mat();
+      const cap = new cv.VideoCapture(videoSrc!);
 
-      return new Promise<void>((resolve) => {
-        srcRef.current!.src = imageSrc;
-        srcRef.current!.onload = () => {
-          try {
-            const img = cv.imread(srcRef.current!);
-            const dst = new cv.Mat();
+      const detectColor = async () => {
+        if (!cap) {
+          return;
+        }
 
-            const p = { 
-              red_min: 0, red_max: 255,
-              green_min: 0, green_max: 255,
-              blue_min: 0, blue_max: 255,
+        return new Promise<void>((resolve) => {
+          cap.read(src);
 
-              red_green_min: -255, red_green_max: 255,
-              red_blue_min: -255, red_blue_max: 255,
-              green_blue_min: -255, green_blue_max: 255,
-            };
+          const p = {
+            red_min: 0, red_max: 255,
+            green_min: 0, green_max: 255,
+            blue_min: 0, blue_max: 255,
 
-            p.red_min = 100;
-            p.red_max = 192;
-            
-            p.green_min = 100;
-            p.green_max = 192;
-            
-            p.blue_min = 100;
-            p.blue_max = 192;
-            
-            applyColorPredicate( img, dst, p );
+            red_green_min: -255, red_green_max: 255,
+            red_blue_min: -255, red_blue_max: 255,
+            green_blue_min: -255, green_blue_max: 255,
+          };
 
-            cv.imshow(destRef.current!, dst);
+          p.red_min = 100;
+          p.red_max = 192;
 
-            img.delete();
-            dst.delete();
-            resolve();
-          } catch (error) {
-            console.log(error);
-            resolve();
-          }
-        };
-      });
-    };
+          p.green_min = 100;
+          p.green_max = 192;
 
-    let handle: number;
+          p.blue_min = 100;
+          p.blue_max = 192;
 
-    const nextTick = () => {
-      handle = requestAnimationFrame(async () => {
-        await detectColor();
-        nextTick();
-      });
-    };
-    nextTick();
-    return () => {
-      cancelAnimationFrame(handle);
-    };
-  });
+          applyColorPredicate(src, dst, p);
+
+          cv.imshow(destRef.current!, dst);
+          resolve();
+        });
+      };
+
+      let handle: number;
+
+      const nextTick = () => {
+        handle = requestAnimationFrame(async () => {
+          await detectColor();
+          nextTick();
+        });
+      };
+      nextTick();
+      return () => {
+        cancelAnimationFrame(handle);
+        src.delete();
+        dst.delete();
+      };
+    }
+  }, [cvLoaded, webcamRef.current]);
 
   return (
     <>
@@ -138,14 +143,10 @@ export default function BlobDetector(props: IBlobDetectorProps) {
         <table>
           <tbody>
             <tr>
-              <td> <img ref={srcRef} /> </td>
               <td> <canvas ref={destRef} /> </td>
             </tr>
           </tbody>
         </table>
-
-
-
       </div>
     </>
   );
