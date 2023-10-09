@@ -25,10 +25,11 @@ type ColorPredicate = {
 };
 
 function applyColorPredicate( src: cv.Mat, dst: cv.Mat, predicate : ColorPredicate ) {
-  const low = new cv.Mat( [ predicate.red_min, predicate.green_min, predicate.blue_min ] );
-  const high = new cv.Mat( [ predicate.red_max, predicate.green_max, predicate.blue_max ] );
+  const low = new cv.Mat( src.rows, src.cols, src.type(), [ predicate.red_min, predicate.green_min, predicate.blue_min, 0 ] );
+  const high = new cv.Mat( src.rows, src.cols, src.type(), [ predicate.red_max, predicate.green_max, predicate.blue_max, 255 ] );
 
   cv.inRange( src, low, high, dst );
+
 
   low.delete();
   high.delete();
@@ -39,13 +40,9 @@ export default function BlobDetector(props: IBlobDetectorProps) {
   const srcRef: React.Ref<HTMLImageElement> = React.useRef(null);
   const destRef: React.Ref<HTMLCanvasElement> = React.useRef(null);
 
-  const redSliderRef: React.Ref<typeof ColorPredicateRangeSlider> = React.useRef(null);
-  const greenSliderRef: React.Ref<typeof ColorPredicateRangeSlider> = React.useRef(null);
-  const blueSliderRef: React.Ref<typeof ColorPredicateRangeSlider> = React.useRef(null);
-  
   React.useEffect(() => {
     const detectColor = async () => {
-      const imageSrc = webcamRef!.current!.getScreenshot();
+      const imageSrc = webcamRef!.current!.;
       if (!imageSrc) return;
 
       return new Promise<void>((resolve) => {
@@ -65,21 +62,21 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               green_blue_min: -255, green_blue_max: 255,
             };
 
-            p.red_min = redSliderRef.current!.values[0];
-            p.red_max = redSliderRef.current!.values[1];
+            p.red_min = 100;
+            p.red_max = 192;
             
-            p.green_min = greenSliderRef.current!.values[0];
-            p.green_max = greenSliderRef.current!.values[1];
+            p.green_min = 100;
+            p.green_max = 192;
             
-            p.blue_min = blueSliderRef.current!.values[0];
-            p.blue_max = blueSliderRef.current!.values[1];
+            p.blue_min = 100;
+            p.blue_max = 192;
             
-
             applyColorPredicate( img, dst, p );
 
-            cv.imshow(destRef.current!, img);
+            cv.imshow(destRef.current!, dst);
 
             img.delete();
+            dst.delete();
             resolve();
           } catch (error) {
             console.log(error);
@@ -115,7 +112,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Red</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider ref={redSliderRef} rtl={false} />
+                  <ColorPredicateRangeSlider rtl={false} />
                 </div>
               </td>
             </tr>
@@ -123,7 +120,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Green</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider ref={greenSliderRef} rtl={false} />
+                  <ColorPredicateRangeSlider rtl={false} />
                 </div>
               </td>
             </tr>
@@ -131,7 +128,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Blue</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider ref={blueSliderRef} rtl={false} />
+                  <ColorPredicateRangeSlider rtl={false} />
                 </div>
               </td>
             </tr>

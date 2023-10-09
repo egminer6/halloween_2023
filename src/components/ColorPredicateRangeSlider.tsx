@@ -5,9 +5,9 @@ const STEP = 1;
 const MIN = 0;
 const MAX = 255;
 
-type ColorPredicateRangeSliderProps = { rtl? : boolean };
+//type ColorPredicateRangeSliderProps = { rtl? : boolean };
 
-const ColorPredicateRangeSlider = ( argProps : ColorPredicateRangeSliderProps ) => {
+const ColorPredicateRangeSlider = ( argProps : any ) => {
   const props = { rtl: false, ...argProps };
   const rtl = props.rtl;
 
