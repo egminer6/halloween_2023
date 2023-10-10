@@ -1,3 +1,4 @@
+import { projectPoints } from "@techstark/opencv-js";
 import React from "react";
 import { Range, getTrackBackground } from "react-range";
 
@@ -8,10 +9,10 @@ const MAX = 255;
 //type ColorPredicateRangeSliderProps = { rtl? : boolean };
 
 const ColorPredicateRangeSlider = ( argProps : any ) => {
-  const props = { rtl: false, ...argProps };
+  const props = { rtl: false, values: [0,255], ...argProps };
   const rtl = props.rtl;
 
-  const [values, setValues] = React.useState([100, 192]);
+  const [values, setValues] = React.useState( props.values );
   return (
     <div
       style={{
@@ -21,7 +22,7 @@ const ColorPredicateRangeSlider = ( argProps : any ) => {
       }}
     >
       <Range
-        values={values}
+        values={ props.values }
         step={STEP}
         min={MIN}
         max={MAX}
@@ -29,7 +30,6 @@ const ColorPredicateRangeSlider = ( argProps : any ) => {
         onChange={(values) => {
           setValues(values);
           if ( props.callback !== undefined ) {
-            
             props.callback(values);
           }
         }}
