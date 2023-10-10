@@ -9,24 +9,25 @@ export interface IBlobDetectorProps {
 };
 
 type ColorPredicate = {
-  red_min: number,
-  red_max: number,
-  green_min: number,
-  green_max: number,
-  blue_min: number,
-  blue_max: number,
+  red_min?: number,
+  red_max?: number,
+  green_min?: number,
+  green_max?: number,
+  blue_min?: number,
+  blue_max?: number,
 
-  red_green_min: number,
-  red_green_max: number,
-  red_blue_min: number,
-  red_blue_max: number,
-  green_blue_min: number,
-  green_blue_max: number
+  red_green_min?: number,
+  red_green_max?: number,
+  red_blue_min?: number,
+  red_blue_max?: number,
+  green_blue_min?: number,
+  green_blue_max?: number
 };
 
 function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate) {
+  console.log(`applyColorPredicate ${JSON.stringify( predicate ) }`);
   const low = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_min, predicate.green_min, predicate.blue_min, 0]);
-  const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max, predicate.green_max, predicate.blue_max, 255]);
+  const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max! - 1, predicate.green_max! - 1, predicate.blue_max! - 1, 255]);
 
   cv.inRange(src, low, high, dst);
 
@@ -40,12 +41,31 @@ export default function BlobDetector(props: IBlobDetectorProps) {
   const destRef: React.Ref<HTMLCanvasElement> = React.useRef(null);
 
   const [cvLoaded, setCvLoaded] = React.useState(false);
+  const p = {
+    red_min: 0, red_max: 255,
+    green_min: 0, green_max: 255,
+    blue_min: 0, blue_max: 255,
+
+    red_green_min: -255, red_green_max: 255,
+    red_blue_min: -255, red_blue_max: 255,
+    green_blue_min: -255, green_blue_max: 255,
+  };
+  const [colorPredicate, setColorPredicate ] = React.useState( p );
 
   cv['onRuntimeInitialized'] = () => {
     console.log(`cv is loaded`);
     console.log(cv.getBuildInformation());
     setCvLoaded(true);
   };
+
+  const updateColorPredicate = ( color : ColorPredicate ) => {
+    console.log(`updateColorPredicate ${JSON.stringify(color, null, 4)}`);
+      setColorPredicate( ( previousState ) => { 
+        const n = {...previousState, ...color }; 
+        console.log(`updated ${JSON.stringify(n)}`);
+        return n;
+      } );
+  }
 
   React.useEffect(() => {
     if ( ( webcamRef.current ) && ( cvLoaded ) ) {
@@ -56,35 +76,16 @@ export default function BlobDetector(props: IBlobDetectorProps) {
       const dst = new cv.Mat();
       const cap = new cv.VideoCapture(videoSrc!);
 
+      
       const detectColor = async () => {
         if (!cap) {
           return;
         }
 
         return new Promise<void>((resolve) => {
-          console.log(`video: ${videoSrc!.width}x${videoSrc!.height} src: ${src.cols}x${src.rows}`);
           cap.read(src);
 
-          const p = {
-            red_min: 0, red_max: 255,
-            green_min: 0, green_max: 255,
-            blue_min: 0, blue_max: 255,
-
-            red_green_min: -255, red_green_max: 255,
-            red_blue_min: -255, red_blue_max: 255,
-            green_blue_min: -255, green_blue_max: 255,
-          };
-
-          p.red_min = 100;
-          p.red_max = 192;
-
-          p.green_min = 100;
-          p.green_max = 192;
-
-          p.blue_min = 100;
-          p.blue_max = 192;
-
-          applyColorPredicate(src, dst, p);
+          applyColorPredicate(src, dst, colorPredicate );
 
           cv.imshow(destRef.current!, dst);
           resolve();
@@ -106,7 +107,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
         dst.delete();
       };
     }
-  }, [cvLoaded, webcamRef.current]);
+  }, [cvLoaded, webcamRef.current, colorPredicate]);
 
   return (
     <>
@@ -120,7 +121,12 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Red</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider rtl={false} />
+                  <ColorPredicateRangeSlider rtl={false} callback={ 
+                      ( values : [number, number ] ) => { 
+                        console.log( `callback red ${values}`); 
+                        updateColorPredicate( { red_min: values[0], red_max: values[1] } ); } 
+                    } 
+                  />
                 </div>
               </td>
             </tr>
@@ -128,7 +134,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Green</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider rtl={false} />
+                  <ColorPredicateRangeSlider rtl={false} color_id={"green"}/>
                 </div>
               </td>
             </tr>

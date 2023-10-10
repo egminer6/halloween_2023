@@ -28,6 +28,10 @@ const ColorPredicateRangeSlider = ( argProps : any ) => {
         rtl={rtl}
         onChange={(values) => {
           setValues(values);
+          if ( props.callback !== undefined ) {
+            
+            props.callback(values);
+          }
         }}
         renderTrack={({ props, children }) => (
           <div
