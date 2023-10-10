@@ -28,12 +28,15 @@ function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate
   //console.log(`applyColorPredicate ${JSON.stringify( predicate ) }`);
   const low = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_min, predicate.green_min, predicate.blue_min, 0]);
   const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max!, predicate.green_max!, predicate.blue_max!, 255]);
+  const mask = new cv.Mat( src.rows, src.cols, cv.CV_8UC4 );
 
-  cv.inRange(src, low, high, dst);
+  cv.inRange(src, low, high, dst );
 
+  //cv.bitwise_and( src, mask, dst );
 
   low.delete();
   high.delete();
+  mask.delete();
 }
 
 export default function BlobDetector(props: IBlobDetectorProps) {
@@ -73,7 +76,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
       //videoSrc?.play();
 
       const src = new cv.Mat(videoSrc?.height, videoSrc?.width, cv.CV_8UC4);
-      const dst = new cv.Mat();
+      const dst = new cv.Mat(videoSrc?.height, videoSrc?.width, src.type() );
       const cap = new cv.VideoCapture(videoSrc!);
 
       const detectColor = async () => {

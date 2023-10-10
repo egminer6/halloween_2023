@@ -5,7 +5,10 @@ import Webcam from "react-webcam";
 
 export default function App() {
   const webcamRef: React.Ref<Webcam> = React.useRef(null);
-  
+  //getContext('2d', { willReadFrequently: true });
+  //webcamRef.current!.getCanvas!.getContext('2d', { willReadFrequently: true } );
+  //webcamRef.current!.context('2d', { willReadFrequently: true } );
+
   return (
     <>
       <h1>Blob Detection</h1>
