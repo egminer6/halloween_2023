@@ -25,9 +25,9 @@ type ColorPredicate = {
 };
 
 function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate) {
-  console.log(`applyColorPredicate ${JSON.stringify( predicate ) }`);
+  //console.log(`applyColorPredicate ${JSON.stringify( predicate ) }`);
   const low = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_min, predicate.green_min, predicate.blue_min, 0]);
-  const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max! - 1, predicate.green_max! - 1, predicate.blue_max! - 1, 255]);
+  const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max!, predicate.green_max!, predicate.blue_max!, 255]);
 
   cv.inRange(src, low, high, dst);
 
@@ -59,10 +59,10 @@ export default function BlobDetector(props: IBlobDetectorProps) {
   };
 
   const updateColorPredicate = ( color : ColorPredicate ) => {
-    console.log(`updateColorPredicate ${JSON.stringify(color, null, 4)}`);
+    //console.log(`updateColorPredicate ${JSON.stringify(color, null, 4)}`);
       setColorPredicate( ( previousState ) => { 
         const n = {...previousState, ...color }; 
-        console.log(`updated ${JSON.stringify(n)}`);
+        //console.log(`updated ${JSON.stringify(n)}`);
         return n;
       } );
   }
@@ -123,7 +123,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
                 <div className="color-predicate-range-slider-container">
                   <ColorPredicateRangeSlider rtl={false} callback={ 
                       ( values : [number, number ] ) => { 
-                        console.log( `callback red ${values}`); 
+                        //console.log( `callback red ${values}`); 
                         updateColorPredicate( { red_min: values[0], red_max: values[1] } ); } 
                     } 
                   />
@@ -134,7 +134,12 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Green</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider rtl={false} color_id={"green"}/>
+                  <ColorPredicateRangeSlider rtl={false} callback={ 
+                      ( values : [number, number ] ) => { 
+                        //console.log( `callback green ${values}`); 
+                        updateColorPredicate( { green_min: values[0], green_max: values[1] } ); } 
+                    } 
+                  />
                 </div>
               </td>
             </tr>
@@ -142,7 +147,11 @@ export default function BlobDetector(props: IBlobDetectorProps) {
               <td>Blue</td>
               <td>
                 <div className="color-predicate-range-slider-container">
-                  <ColorPredicateRangeSlider rtl={false} />
+                  <ColorPredicateRangeSlider rtl={false} callback={ 
+                      ( values : [number, number ] ) => { 
+                        //console.log( `callback blue ${values}`); 
+                        updateColorPredicate( { blue_min: values[0], blue_max: values[1] } ); } 
+                    } />
                 </div>
               </td>
             </tr>
