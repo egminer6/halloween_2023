@@ -30,15 +30,14 @@ function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate
   const high = new cv.Mat(src.rows, src.cols, src.type(), [predicate.red_max!, predicate.green_max!, predicate.blue_max!, 255]);
   const mask = new cv.Mat( src.rows, src.cols, src.type() );
   const invMask = new cv.Mat( src.rows, src.cols, src.type() );
-  const red = new cv.Mat( src.rows, src.cols, src.type(), [ 255, 0, 255, 255] );
+  const red = new cv.Mat( src.rows, src.cols, src.type(), [ 255, 0, 0, 255] );
   console.log("variables");
 
   cv.inRange(src, low, high, mask );
   cv.bitwise_not(mask, invMask);
   console.log("inv");
-  //cv.bitwise_and( src , src, dst, invMask );
-  //cv.bitwise_and( red , red, dst, mask );
-  cv.bitwise_and( red, red, dst, mask );
+  cv.bitwise_and( src , src, dst, invMask );
+  cv.bitwise_and( red , red, dst, mask );
   console.log(`and src ${src.type()} dst ${dst.type()} red ${red.type()} mask ${mask.type()}`);
 
   low.delete();
