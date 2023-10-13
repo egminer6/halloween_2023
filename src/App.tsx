@@ -17,7 +17,6 @@ export default function App() {
       <Webcam
         ref={webcamRef}
         className="camera"
-        mirrored
         width="640"
         height="480"
       />
