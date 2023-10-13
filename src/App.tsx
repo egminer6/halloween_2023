@@ -7,7 +7,10 @@ export default function App() {
   const webcamRef: React.Ref<Webcam> = React.useRef(null);
   //getContext('2d', { willReadFrequently: true });
   //webcamRef.current!.getCanvas!.getContext('2d', { willReadFrequently: true } );
-  //webcamRef.current!.context('2d', { willReadFrequently: true } );
+  
+  const videoConstraints = {
+    facingMode: "environment"
+  }
 
   return (
     <>
@@ -23,6 +26,8 @@ export default function App() {
                   className="camera"
                   width="640"
                   height="480"
+                  audio={false}
+                  videoConstraints={videoConstraints}
                 />
               </td>
             </tr>

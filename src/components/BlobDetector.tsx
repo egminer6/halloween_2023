@@ -52,6 +52,7 @@ function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate
 
 export default function BlobDetector(props: IBlobDetectorProps) {
   const webcamRef = props.webcam;
+  
   const destRef: React.Ref<HTMLCanvasElement> = React.useRef(null);
 
   type PixelPos = { x: number, y: number };
@@ -255,6 +256,8 @@ export default function BlobDetector(props: IBlobDetectorProps) {
       const src = new cv.Mat(videoSrc?.height, videoSrc?.width, cv.CV_8UC4);
       const dst = new cv.Mat(videoSrc?.height, videoSrc?.width, src.type());
       const cap = new cv.VideoCapture(videoSrc!);
+
+      //webcamRef.current!.getCanvas()!.getContext( "2d", { willReadFrequently: true } );
 
       const detectColor = async () => {
         if (!cap) {
