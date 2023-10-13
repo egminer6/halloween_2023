@@ -203,17 +203,26 @@ export default function BlobDetector(props: IBlobDetectorProps) {
     }
   }
 
+  const startDragging = ( ev: MouseEvent | TouchEvent ) => {
+    dragging = true;
+  }
+
+  const stopDragging = ( ev: MouseEvent | TouchEvent ) => {
+    dragging = false;
+  }
+  
   let dragging = false;
 
   React.useEffect(() => {
     if ((webcamRef.current) && (cvLoaded)) {
       const videoSrc = webcamRef.current!.video;
-      videoSrc!.onmousedown = (ev: MouseEvent) => {
-        dragging = true;
-      }
-      videoSrc!.onmouseup = (ev: MouseEvent) => {
-        dragging = false;
-      }
+
+      destRef.current!.width = videoSrc!.width;
+      destRef.current!.height = videoSrc!.height;
+
+      videoSrc!.onmousedown = startDragging;
+      videoSrc!.onmouseup = stopDragging;
+      
       videoSrc!.onmousemove = (ev: MouseEvent) => {
         if (dragging) {
           const pos = getMousePos(ev.clientX, ev.clientY, videoSrc!);
@@ -222,9 +231,17 @@ export default function BlobDetector(props: IBlobDetectorProps) {
         }
       }
 
-      videoSrc!.onmouseleave = ( ev: MouseEvent ) => {
-        dragging = false;
+      videoSrc!.ontouchstart = ( ev: TouchEvent ) => {
+        if ( dragging ) {
+          const pos = getMousePos( ev.touches[0].clientX, ev.touches[0].clientY, videoSrc! );
+          addPoints.push( pos );
+          console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
+        }
       }
+
+      videoSrc!.onmouseleave = stopDragging;
+
+      videoSrc!.ontouchcancel = stopDragging;
 
       //videoSrc?.play();
 
@@ -244,7 +261,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
                         
             if (pos) {
               const pixel = getPixel(src, pos.x, pos.y);
-              console.log( `addPoints pos=(${pos.x},${pos.y}) RGB=[ ${pixel[0]},${pixel[1]},${pixel[2]} ]`);
+              
               if (pixel) {
                 extendColorPredicate({
                   red_min: pixel[0], red_max: pixel[0],
