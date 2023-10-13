@@ -175,7 +175,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
       }
       console.log(`extendColorPredicate ${JSON.stringify(n)}`);
       return n;
-    } );
+    });
   }
 
   const getPixel = (m: cv.Mat, col: number, row: number) => {
@@ -190,27 +190,29 @@ export default function BlobDetector(props: IBlobDetectorProps) {
   }
 
   const isResetColorPredicate = (pred: ColorPredicate) => {
-    return ( ! ( (pred.red_min != 0) || (pred.red_max != 255)
+    return (!((pred.red_min != 0) || (pred.red_max != 255)
       || (pred.green_min != 0) || (pred.green_max != 255)
-      || (pred.blue_min != 0) || (pred.blue_max != 255) ) );
+      || (pred.blue_min != 0) || (pred.blue_max != 255)));
   }
 
-  const getMousePos = (x : number, y : number, canvas: HTMLCanvasElement | HTMLVideoElement) => {
+  const getMousePos = (x: number, y: number, canvas: HTMLCanvasElement | HTMLVideoElement) => {
     const rect = canvas.getBoundingClientRect();
     return {
-      x: Math.round((x - rect.left) / (rect.right - rect.left) * canvas.width ),
-      y: Math.round((y - rect.top) / (rect.bottom - rect.top) * canvas.height ),
+      x: Math.round((x - rect.left) / (rect.right - rect.left) * canvas.width),
+      y: Math.round((y - rect.top) / (rect.bottom - rect.top) * canvas.height),
     }
   }
 
-  const startDragging = ( ev: MouseEvent | TouchEvent ) => {
+  const startDragging = (ev: MouseEvent | TouchEvent) => {
+    ev.preventDefault();
     dragging = true;
   }
 
-  const stopDragging = ( ev: MouseEvent | TouchEvent ) => {
+  const stopDragging = (ev: MouseEvent | TouchEvent) => {
+    ev.preventDefault();
     dragging = false;
   }
-  
+
   let dragging = false;
 
   React.useEffect(() => {
@@ -222,8 +224,9 @@ export default function BlobDetector(props: IBlobDetectorProps) {
 
       videoSrc!.onmousedown = startDragging;
       videoSrc!.onmouseup = stopDragging;
-      
+
       videoSrc!.onmousemove = (ev: MouseEvent) => {
+        ev.preventDefault();
         if (dragging) {
           const pos = getMousePos(ev.clientX, ev.clientY, videoSrc!);
           addPoints.push(pos);
@@ -231,10 +234,14 @@ export default function BlobDetector(props: IBlobDetectorProps) {
         }
       }
 
-      videoSrc!.ontouchstart = ( ev: TouchEvent ) => {
-        if ( dragging ) {
-          const pos = getMousePos( ev.touches[0].clientX, ev.touches[0].clientY, videoSrc! );
-          addPoints.push( pos );
+      videoSrc!.ontouchstart = startDragging;
+      videoSrc!.ontouchend = stopDragging;
+
+      videoSrc!.ontouchmove = (ev: TouchEvent) => {
+        ev.preventDefault();
+        if (dragging) {
+          const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, videoSrc!);
+          addPoints.push(pos);
           console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
         }
       }
@@ -258,10 +265,10 @@ export default function BlobDetector(props: IBlobDetectorProps) {
           cap.read(src);
           while (addPoints.length > 0) {
             const pos = addPoints.shift();
-                        
+
             if (pos) {
               const pixel = getPixel(src, pos.x, pos.y);
-              
+
               if (pixel) {
                 extendColorPredicate({
                   red_min: pixel[0], red_max: pixel[0],
@@ -275,7 +282,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
             }
           }
 
-          if ( ! isResetColorPredicate(colorPredicate) ) {
+          if (!isResetColorPredicate(colorPredicate)) {
             applyColorPredicate(src, dst, colorPredicate);
           } else {
             src.copyTo(dst);
@@ -375,22 +382,43 @@ export default function BlobDetector(props: IBlobDetectorProps) {
         <table>
           <tbody>
             <tr>
-              <td> <canvas ref={destRef} 
-                       onMouseDown = { (ev) => {
-                        dragging = true;
-                      } }
-                      onMouseUp = { (ev) => {
-                        dragging = false;
-                      } }
-                      onMouseMove = { (ev) => {
-                        if (dragging) {
-                          const pos = getMousePos(ev.clientX, ev.clientY, destRef.current!);
-                          addPoints.push(pos);
-                          console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
-                        } } }
-                      onMouseLeave = { (ev) => {
-                          dragging = false;
-                        } }
+              <td> <canvas ref={destRef}
+                onMouseDown={(ev) => {
+                  dragging = true;
+                }}
+                onMouseUp={(ev) => {
+                  dragging = false;
+                }}
+                onMouseMove={(ev) => {
+                  if (dragging) {
+                    const pos = getMousePos(ev.clientX, ev.clientY, destRef.current!);
+                    addPoints.push(pos);
+                    console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
+                  }
+                }}
+                onMouseLeave={(ev) => {
+                  dragging = false;
+                }}
+                onTouchStart={(ev) => {
+                  dragging = true;
+                }}
+                onTouchEnd={(ev) => {
+                  dragging = false;
+                }}
+                onTouchCancel={(ev) => {
+                  dragging = true;
+                }}
+                onTouchMove={(ev) => {
+                  if (dragging) {
+                    const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, destRef.current!);
+                    addPoints.push(pos);
+                    console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
+
+                    if ( ev.cancelable ) {
+                      ev.preventDefault();
+                    }
+                  }
+                }}
               /></td>
             </tr>
           </tbody>
