@@ -222,33 +222,33 @@ export default function BlobDetector(props: IBlobDetectorProps) {
       destRef.current!.width = videoSrc!.width;
       destRef.current!.height = videoSrc!.height;
 
-      videoSrc!.onmousedown = startDragging;
-      videoSrc!.onmouseup = stopDragging;
+      // videoSrc!.onmousedown = startDragging;
+      // videoSrc!.onmouseup = stopDragging;
 
-      videoSrc!.onmousemove = (ev: MouseEvent) => {
-        ev.preventDefault();
-        if (dragging) {
-          const pos = getMousePos(ev.clientX, ev.clientY, videoSrc!);
-          addPoints.push(pos);
-          console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
-        }
-      }
+      // videoSrc!.onmousemove = (ev: MouseEvent) => {
+      //   ev.preventDefault();
+      //   if (dragging) {
+      //     const pos = getMousePos(ev.clientX, ev.clientY, videoSrc!);
+      //     addPoints.push(pos);
+      //     console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
+      //   }
+      // }
 
-      videoSrc!.ontouchstart = startDragging;
-      videoSrc!.ontouchend = stopDragging;
+      // videoSrc!.ontouchstart = startDragging;
+      // videoSrc!.ontouchend = stopDragging;
 
-      videoSrc!.ontouchmove = (ev: TouchEvent) => {
-        ev.preventDefault();
-        if (dragging) {
-          const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, videoSrc!);
-          addPoints.push(pos);
-          console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
-        }
-      }
+      // videoSrc!.ontouchmove = (ev: TouchEvent) => {
+      //   ev.preventDefault();
+      //   if (dragging) {
+      //     const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, videoSrc!);
+      //     addPoints.push(pos);
+      //     console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
+      //   }
+      // }
 
-      videoSrc!.onmouseleave = stopDragging;
+      // videoSrc!.onmouseleave = stopDragging;
 
-      videoSrc!.ontouchcancel = stopDragging;
+      // videoSrc!.ontouchcancel = stopDragging;
 
       //videoSrc?.play();
 
@@ -383,41 +383,25 @@ export default function BlobDetector(props: IBlobDetectorProps) {
           <tbody>
             <tr>
               <td> <canvas ref={destRef}
-                onMouseDown={(ev) => {
+                onPointerDown={(ev) => {
                   dragging = true;
-                }}
-                onMouseUp={(ev) => {
+                  const pos = getMousePos(ev.clientX, ev.clientY, destRef.current!);
+                  addPoints.push(pos);
+                  console.log(`mousedown pos ${pos.x},${pos.y} ${addPoints.length}`);
+              }}
+                onPointerUp={(ev) => {
                   dragging = false;
                 }}
-                onMouseMove={(ev) => {
+                onPointerMove={(ev) => {
                   if (dragging) {
                     const pos = getMousePos(ev.clientX, ev.clientY, destRef.current!);
                     addPoints.push(pos);
                     console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
                   }
+                  //ev.preventDefault();
                 }}
-                onMouseLeave={(ev) => {
+                onPointerLeave={(ev) => {
                   dragging = false;
-                }}
-                onTouchStart={(ev) => {
-                  dragging = true;
-                }}
-                onTouchEnd={(ev) => {
-                  dragging = false;
-                }}
-                onTouchCancel={(ev) => {
-                  dragging = true;
-                }}
-                onTouchMove={(ev) => {
-                  if (dragging) {
-                    const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, destRef.current!);
-                    addPoints.push(pos);
-                    console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
-
-                    if ( ev.cancelable ) {
-                      ev.preventDefault();
-                    }
-                  }
                 }}
               /></td>
             </tr>

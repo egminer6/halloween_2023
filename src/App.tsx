@@ -14,12 +14,21 @@ export default function App() {
       <h1>Blob Detection</h1>
 
       <div>
-      <Webcam
-        ref={webcamRef}
-        className="camera"
-        width="640"
-        height="480"
-      />
+        <table style={{visibility:"collapse"}}>
+          <tbody>
+            <tr>
+              <td>
+                <Webcam
+                  ref={webcamRef}
+                  className="camera"
+                  width="640"
+                  height="480"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
       </div>
       <BlobDetector webcam={webcamRef} />
     </>
