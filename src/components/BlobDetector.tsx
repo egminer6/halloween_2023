@@ -1,10 +1,11 @@
 import React from "react";
+import { JackyCamera, JackyCameraHandle } from './JackyCamera';
 import Webcam from 'react-webcam';
 import cv from "@techstark/opencv-js";
 import ColorPredicateRangeSlider from "./ColorPredicateRangeSlider";
 
-export interface IBlobDetectorProps {
-  webcam: React.RefObject<Webcam>;
+export interface BlobDetectorProps {
+  camera: React.RefObject<JackyCameraHandle>;
   style?: React.CSSProperties;
 };
 
@@ -50,9 +51,9 @@ function applyColorPredicate(src: cv.Mat, dst: cv.Mat, predicate: ColorPredicate
   console.log("delete");
 }
 
-export default function BlobDetector(props: IBlobDetectorProps) {
-  const webcamRef = props.webcam;
-  
+export default function BlobDetector(props: BlobDetectorProps) {
+  const camRef = props.camera;
+
   const destRef: React.Ref<HTMLCanvasElement> = React.useRef(null);
 
   type PixelPos = { x: number, y: number };
@@ -217,101 +218,105 @@ export default function BlobDetector(props: IBlobDetectorProps) {
   let dragging = false;
 
   React.useEffect(() => {
-    if ((webcamRef.current) && (cvLoaded)) {
-      const videoSrc = webcamRef.current!.video;
+    if ((camRef.current) && (cvLoaded)) {
+      //const camera : JackyCamera = camRef.current!;
+      const webcam : Webcam | null = camRef.current!.getWebcam();
+      if (webcam !== null) {
+        const videoSrc = webcam.video;
 
-      destRef.current!.width = videoSrc!.width;
-      destRef.current!.height = videoSrc!.height;
+        destRef.current!.width = videoSrc!.width;
+        destRef.current!.height = videoSrc!.height;
 
-      // videoSrc!.onmousedown = startDragging;
-      // videoSrc!.onmouseup = stopDragging;
+        // videoSrc!.onmousedown = startDragging;
+        // videoSrc!.onmouseup = stopDragging;
 
-      // videoSrc!.onmousemove = (ev: MouseEvent) => {
-      //   ev.preventDefault();
-      //   if (dragging) {
-      //     const pos = getMousePos(ev.clientX, ev.clientY, videoSrc!);
-      //     addPoints.push(pos);
-      //     console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
-      //   }
-      // }
+        // videoSrc!.onmousemove = (ev: MouseEvent) => {
+        //   ev.preventDefault();
+        //   if (dragging) {
+        //     const pos = getMousePos(ev.clientX, ev.clientY, videoSrc!);
+        //     addPoints.push(pos);
+        //     console.log(`mousemove pos ${pos.x},${pos.y} ${addPoints.length}`);
+        //   }
+        // }
 
-      // videoSrc!.ontouchstart = startDragging;
-      // videoSrc!.ontouchend = stopDragging;
+        // videoSrc!.ontouchstart = startDragging;
+        // videoSrc!.ontouchend = stopDragging;
 
-      // videoSrc!.ontouchmove = (ev: TouchEvent) => {
-      //   ev.preventDefault();
-      //   if (dragging) {
-      //     const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, videoSrc!);
-      //     addPoints.push(pos);
-      //     console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
-      //   }
-      // }
+        // videoSrc!.ontouchmove = (ev: TouchEvent) => {
+        //   ev.preventDefault();
+        //   if (dragging) {
+        //     const pos = getMousePos(ev.touches[0].clientX, ev.touches[0].clientY, videoSrc!);
+        //     addPoints.push(pos);
+        //     console.log(`touchmove pos ${pos.x},${pos.y} ${addPoints.length}`);
+        //   }
+        // }
 
-      // videoSrc!.onmouseleave = stopDragging;
+        // videoSrc!.onmouseleave = stopDragging;
 
-      // videoSrc!.ontouchcancel = stopDragging;
+        // videoSrc!.ontouchcancel = stopDragging;
 
-      //videoSrc?.play();
+        //videoSrc?.play();
 
-      const src = new cv.Mat(videoSrc?.height, videoSrc?.width, cv.CV_8UC4);
-      const dst = new cv.Mat(videoSrc?.height, videoSrc?.width, src.type());
-      const cap = new cv.VideoCapture(videoSrc!);
+        const src = new cv.Mat(videoSrc?.height, videoSrc?.width, cv.CV_8UC4);
+        const dst = new cv.Mat(videoSrc?.height, videoSrc?.width, src.type());
+        const cap = new cv.VideoCapture(videoSrc!);
+        
+        //webcamRef.current!.getCanvas()!.getContext( "2d", { willReadFrequently: true } );
 
-      //webcamRef.current!.getCanvas()!.getContext( "2d", { willReadFrequently: true } );
+        const detectColor = async () => {
+          if (!cap) {
+            return;
+          }
 
-      const detectColor = async () => {
-        if (!cap) {
-          return;
-        }
+          return new Promise<void>((resolve) => {
+            cap.read(src);
+            while (addPoints.length > 0) {
+              const pos = addPoints.shift();
 
-        return new Promise<void>((resolve) => {
-          cap.read(src);
-          while (addPoints.length > 0) {
-            const pos = addPoints.shift();
+              if (pos) {
+                const pixel = getPixel(src, pos.x, pos.y);
 
-            if (pos) {
-              const pixel = getPixel(src, pos.x, pos.y);
-
-              if (pixel) {
-                extendColorPredicate({
-                  red_min: pixel[0], red_max: pixel[0],
-                  green_min: pixel[1], green_max: pixel[1],
-                  blue_min: pixel[2], blue_max: pixel[2],
-                  red_green_min: pixel[0] - pixel[1], red_green_max: pixel[0] - pixel[1],
-                  red_blue_min: pixel[0] - pixel[2], red_blue_max: pixel[0] - pixel[2],
-                  green_blue_min: pixel[1] - pixel[2], green_blue_max: pixel[1] - pixel[2],
-                });
+                if (pixel) {
+                  extendColorPredicate({
+                    red_min: pixel[0], red_max: pixel[0],
+                    green_min: pixel[1], green_max: pixel[1],
+                    blue_min: pixel[2], blue_max: pixel[2],
+                    red_green_min: pixel[0] - pixel[1], red_green_max: pixel[0] - pixel[1],
+                    red_blue_min: pixel[0] - pixel[2], red_blue_max: pixel[0] - pixel[2],
+                    green_blue_min: pixel[1] - pixel[2], green_blue_max: pixel[1] - pixel[2],
+                  });
+                }
               }
             }
-          }
 
-          if (!isResetColorPredicate(colorPredicate)) {
-            applyColorPredicate(src, dst, colorPredicate);
-          } else {
-            src.copyTo(dst);
-          }
+            if (!isResetColorPredicate(colorPredicate)) {
+              applyColorPredicate(src, dst, colorPredicate);
+            } else {
+              src.copyTo(dst);
+            }
 
-          cv.imshow(destRef.current!, dst);
-          resolve();
-        });
-      };
+            cv.imshow(destRef.current!, dst);
+            resolve();
+          });
+        };
 
-      let handle: number;
+        let handle: number;
 
-      const nextTick = () => {
-        handle = requestAnimationFrame(async () => {
-          await detectColor();
-          nextTick();
-        });
-      };
-      nextTick();
-      return () => {
-        cancelAnimationFrame(handle);
-        src.delete();
-        dst.delete();
-      };
+        const nextTick = () => {
+          handle = requestAnimationFrame(async () => {
+            await detectColor();
+            nextTick();
+          });
+        };
+        nextTick();
+        return () => {
+          cancelAnimationFrame(handle);
+          src.delete();
+          dst.delete();
+        };
+      }
     }
-  }, [cvLoaded, webcamRef.current, colorPredicate]);
+  }, [cvLoaded, camRef.current, colorPredicate]);
 
   return (
     <>
@@ -391,7 +396,7 @@ export default function BlobDetector(props: IBlobDetectorProps) {
                   const pos = getMousePos(ev.clientX, ev.clientY, destRef.current!);
                   addPoints.push(pos);
                   console.log(`mousedown pos ${pos.x},${pos.y} ${addPoints.length}`);
-              }}
+                }}
                 onPointerUp={(ev) => {
                   dragging = false;
                 }}
