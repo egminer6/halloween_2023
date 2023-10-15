@@ -34,7 +34,7 @@ export type JackyCameraHandle = {
 
 export const JackyCamera = React.forwardRef((props: JackyCameraProps, ref) => {
     const camRef: React.Ref<Webcam> = React.useRef(null);
-
+    
     useImperativeHandle(
         ref,
         () => ({
@@ -60,15 +60,20 @@ export const JackyCamera = React.forwardRef((props: JackyCameraProps, ref) => {
         [handleDevices]
     );
 
+    console.log(`Rendering JackyCamera`);
+
     return (
         <>
             <div>
-                <select className="cameraSelect" name="cameraSelect">
+                <select className="cameraSelect" name="cameraSelect"
+                onChange={ (ev) => {
+                    setDeviceId( ev.target.value );
+                }}>
                     {devices.map((device, key) => (
-                        <option value={device.label}>{device.label}</option>
+                        <option key={`Device ${key+1}`} value={device.deviceId}>{device.label}</option>
                     ))}
                 </select>
-                <table style={{ visibility: "visible" }}>
+                <table style={{ visibility: "collapse" }}>
                     <tbody>
                         <tr>
                             <td>
@@ -77,7 +82,7 @@ export const JackyCamera = React.forwardRef((props: JackyCameraProps, ref) => {
                                     width="640"
                                     height="480"
                                     audio={false}
-                                    videoConstraints={props.videoConstraints}
+                                    videoConstraints={ { deviceId: deviceId } }
                                 />
                             </td>
                         </tr>
