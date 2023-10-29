@@ -9,6 +9,29 @@ export interface IEyeProps {
   style?: React.CSSProperties;
 };
 
+const preMultiplyAlpha = ( src: cv.Mat, dst: cv.Mat ) => {
+  const rgbaPlanes = new cv.MatVector();
+  // Split the Mat
+  cv.split(src, rgbaPlanes);
+
+  // Get R channel
+  cv.multiply( rgbaPlanes.get(0), rgbaPlanes.get(3), rgbaPlanes.get(0) );
+  cv.multiply( rgbaPlanes.get(1), rgbaPlanes.get(3), rgbaPlanes.get(1) );
+  cv.multiply( rgbaPlanes.get(2), rgbaPlanes.get(3), rgbaPlanes.get(2) );
+
+  const dstRgbaPlanes = new cv.MatVector();
+
+  dstRgbaPlanes.push_back( rgbaPlanes.get(0) );
+  dstRgbaPlanes.push_back( rgbaPlanes.get(1) );
+  dstRgbaPlanes.push_back( rgbaPlanes.get(2) );
+  
+  // Merge all channels
+  cv.merge(dstRgbaPlanes, dst);
+
+  rgbaPlanes.delete();
+  dstRgbaPlanes.delete();
+}
+
 export default function Eye(props: IEyeProps) {
   const camRef = props.camera;
   
@@ -33,22 +56,27 @@ export default function Eye(props: IEyeProps) {
       const eyeBackground = cv.imread( eyeBackgroundRef.current! );
       const eyePupil = cv.imread( eyePupilRef.current! );
       const eyeIris = cv.imread( eyeIrisRef.current! );
+      //const theEye = new cv.Mat( eyeBackground.rows, eyeBackground.cols, eyeBackground.channels() );
+      
+      //cv.add( eyeIris, eyePupil, theEye,  );
+
+      console.log( `eyeBackground ${eyeBackground.channels()}`);
 
       //const camera : JackyCamera = camRef.current!;
       const webcam : Webcam | null = camRef.current!.getWebcam();
       if (webcam !== null) {
         const videoSrc = webcam.video;
-
-        destRef.current!.width = videoSrc!.width;
-        destRef.current!.height = videoSrc!.height;
-        console.log( "rendering eye background" );
-        //cv.imshow( destRef.current!, eyeBackground );
+        // on Mac range is from to 30, 375 -> 0, 600
+        // destRef.current!.width = videoSrc!.width;
+        // destRef.current!.height = videoSrc!.height;
+        // console.log( "rendering eye background" );
+        //cv.imshow( destRef.current!, theEye );
       }
 
       eyeBackground.delete();
       eyePupil.delete();
       eyeIris.delete();
-  
+      //theEye.delete();
     }
 
   }, [cvLoaded] );
@@ -58,10 +86,10 @@ export default function Eye(props: IEyeProps) {
       <div style={{ ...props.style }}>
         <canvas ref={destRef} />
       </div>
-      <div>
-        <img ref={ eyeBackgroundRef } src="/images/eye_background.png" />
-        <img ref={ eyePupilRef } src="/images/eye_pupil.png" />
-        <img ref={ eyeIrisRef } src="/images/eye_iris.png" />
+      <div className="eyeContainer" style={{position:"relative", width:"640px" }}>
+        <img className="eyeBackgroundImg" ref={ eyeBackgroundRef } src="/images/eye_background.png" style={{ position: "absolute", top: 0, zIndex: 30 }}/>
+        <img className="eyePupilImg" ref={ eyePupilRef } src="/images/eye_pupil.png" style={{ position: "absolute", top: "30px", left: "375px", zIndex: 20 }} />
+        <img className="eyeIrisImg" ref={ eyeIrisRef } src="/images/eye_iris.png" style={{ position: "absolute", top: 0, zIndex: 10 }} />
       </div>
     </>
   );
