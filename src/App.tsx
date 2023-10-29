@@ -1,6 +1,6 @@
 import "./App.css";
 import React from "react";
-import BlobDetector from "./components/BlobDetector";
+import Eye from "./components/Eye";
 import { JackyCameraHandle, JackyCamera } from "./components/JackyCamera";
 
 export default function App() {
@@ -15,8 +15,6 @@ export default function App() {
 
   return (
     <>
-      <h1>Blob Detection</h1>
-
       <div>
         <JackyCamera
           ref={camRef}
@@ -27,7 +25,7 @@ export default function App() {
           videoConstraints={videoConstraints}
         />
       </div>
-      <BlobDetector camera={camRef} />
+      <Eye camera={camRef} />
     </>
   );
 }
