@@ -1,7 +1,7 @@
 import React from "react";
 import { JackyCamera, JackyCameraHandle } from './JackyCamera';
 import Webcam from 'react-webcam';
-import loadDataFile from "../DataFile";
+import { loadDataFile } from "../DataFile";
 import cv from "@techstark/opencv-js";
 
 export interface IEyeProps {
@@ -32,10 +32,26 @@ const preMultiplyAlpha = ( src: cv.Mat, dst: cv.Mat ) => {
   dstRgbaPlanes.delete();
 }
 
+export async function loadHaarFaceModels() {
+  try {
+    console.log("=======start downloading Haar-cascade models=======");
+    await loadDataFile(
+      "haarcascade_frontalface_default.xml",
+      "models/haarcascade_frontalface_default.xml"
+    );
+    await loadDataFile("haarcascade_eye.xml", "models/haarcascade_eye.xml");
+    console.log("=======downloaded Haar-cascade models=======");
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
 export default function Eye(props: IEyeProps) {
   const camRef = props.camera;
   
   const [cvLoaded, setCvLoaded] = React.useState(false);
+  const [ haarFacesLoaded, setHaarFacesLoaded ] = React.useState( false );
 
   const destRef: React.Ref<HTMLCanvasElement> = React.useRef(null);
 
@@ -47,39 +63,98 @@ export default function Eye(props: IEyeProps) {
     console.log(`cv is loaded`);
     console.log(cv.getBuildInformation());
     setCvLoaded(true);
+
+    loadHaarFaceModels().then( () => { setHaarFacesLoaded( true ); } );
   };
 
   React.useEffect(() => {
-
     if ((camRef.current) && (cvLoaded)) {
-      console.log(`Reading images ${eyeBackgroundRef.current}` );
-      const eyeBackground = cv.imread( eyeBackgroundRef.current! );
-      const eyePupil = cv.imread( eyePupilRef.current! );
-      const eyeIris = cv.imread( eyeIrisRef.current! );
-      //const theEye = new cv.Mat( eyeBackground.rows, eyeBackground.cols, eyeBackground.channels() );
-      
-      //cv.add( eyeIris, eyePupil, theEye,  );
-
-      console.log( `eyeBackground ${eyeBackground.channels()}`);
 
       //const camera : JackyCamera = camRef.current!;
       const webcam : Webcam | null = camRef.current!.getWebcam();
+
+      const classifier = new cv.CascadeClassifier();
+      // load pre-trained classifiers
+      classifier.load('haarcascade_frontalface_default.xml');
+  
       if (webcam !== null) {
         const videoSrc = webcam.video;
         // on Mac range is from to 30, 375 -> 0, 600
-        // destRef.current!.width = videoSrc!.width;
-        // destRef.current!.height = videoSrc!.height;
-        // console.log( "rendering eye background" );
-        //cv.imshow( destRef.current!, theEye );
+
+        const src = new cv.Mat(videoSrc?.height, videoSrc?.width, cv.CV_8UC4);
+        const dst = new cv.Mat(videoSrc?.height, videoSrc?.width, src.type());
+        const gray = new cv.Mat();
+        const cap = new cv.VideoCapture(videoSrc!);
+
+        const faceCascade = new cv.CascadeClassifier();
+        faceCascade.load( "haarcascade_frontalface_default.xml");
+
+        const eyeCascade = new cv.CascadeClassifier();
+        eyeCascade.load( "haarcascade_eye.xml");
+
+        const faces = new cv.RectVector();
+        const eyes = new cv.RectVector();
+
+        const detectFaces = async () => {
+          if (!cap) {
+            return;
+          }
+
+          return new Promise<void>((resolve) => {
+            cap.read(src);
+            src.copyTo(dst);
+
+            cv.cvtColor( dst, gray, cv.COLOR_RGBA2GRAY, 0 );
+
+            const msize = new cv.Size( 0, 0 );
+
+            faceCascade.detectMultiScale( gray, faces, 1.1, 3, 0, msize, msize );
+
+            if  ( faces.size() > 0 ) {
+              const el = eyePupilRef.current!;
+              const tx = faces.get(0).x;
+              const ty = faces.get(0).y;
+              const base_y = -200;
+              const base_x = 
+              
+              el.style.transform = "translate(" + (tx) + "px," + (base_y + ty) + "px)";
+            }
+
+            for (let i = 0; i < faces.size(); ++i) {
+              const face = faces.get(i);
+              const point1 = new cv.Point(face.x, face.y);
+              const point2 = new cv.Point(face.x + face.width, face.y + face.height);
+              cv.rectangle(src, point1, point2, [255, 0, 0, 255]);
+            }
+            cv.imshow(destRef.current!, src);
+            resolve();
+          });
+        };
+
+        let handle: number;
+
+        const nextTick = () => {
+          handle = requestAnimationFrame(async () => {
+            await detectFaces();
+            nextTick();
+          });
+        };
+
+        nextTick();
+        return () => {
+          cancelAnimationFrame(handle);
+          src.delete();
+          dst.delete();
+          gray.delete();
+          faces.delete();
+          eyes.delete();
+          faceCascade.delete();
+          eyeCascade.delete();
+          classifier.delete();
+        };
       }
-
-      eyeBackground.delete();
-      eyePupil.delete();
-      eyeIris.delete();
-      //theEye.delete();
     }
-
-  }, [cvLoaded] );
+  }, [ haarFacesLoaded ] );
 
   return (
     <>
@@ -88,7 +163,7 @@ export default function Eye(props: IEyeProps) {
       </div>
       <div className="eyeContainer" style={{position:"relative", width:"640px" }}>
         <img className="eyeBackgroundImg" ref={ eyeBackgroundRef } src="/images/eye_background.png" style={{ position: "absolute", top: 0, zIndex: 30 }}/>
-        <img className="eyePupilImg" ref={ eyePupilRef } src="/images/eye_pupil.png" style={{ position: "absolute", top: "30px", left: "375px", zIndex: 20 }} />
+        <img className="eyePupilImg" ref={ eyePupilRef } src="/images/eye_pupil.png" style={{ position: "absolute", top: "30px", left: "200px", zIndex: 20 }} />
         <img className="eyeIrisImg" ref={ eyeIrisRef } src="/images/eye_iris.png" style={{ position: "absolute", top: 0, zIndex: 10 }} />
       </div>
     </>

@@ -1,6 +1,6 @@
 import cv from "@techstark/opencv-js";
 
-async function loadDataFile(cvFilePath: string, url: string) {
+export async function loadDataFile(cvFilePath: string, url: string) {
     // see https://docs.opencv.org/master/utils.js
     const response = await fetch(url);
     const buffer = await response.arrayBuffer();
@@ -8,7 +8,6 @@ async function loadDataFile(cvFilePath: string, url: string) {
     cv.FS_createDataFile("/", cvFilePath, data, true, false, false);
 }
 
-export default loadDataFile;
 
 
 
