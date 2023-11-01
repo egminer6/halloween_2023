@@ -70,7 +70,7 @@ export const JackyCamera = React.forwardRef((props: JackyCameraProps, ref) => {
                     setDeviceId( ev.target.value );
                 }}>
                     {devices.map((device, key) => (
-                        <option key={`Device ${key+1}`} value={device.deviceId}>{device.label}</option>
+                        <option key={`Device ${key+1}`} value={device.deviceId}>{device.label || `Device ${key + 1}`}</option>
                     ))}
                 </select>
                 <table style={{ visibility: "collapse" }}>
