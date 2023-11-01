@@ -22,8 +22,11 @@ export default function App() {
           width="640"
           height="480"
           audio={false}
-          videoConstraints={videoConstraints}
-        />
+          videoConstraints={videoConstraints} forceScreenshotSourceSize={false} imageSmoothing={false} mirrored={false} onUserMedia={function (stream: MediaStream): void {
+            throw new Error("Function not implemented.");
+          } } onUserMediaError={function (error: string | DOMException): void {
+            throw new Error("Function not implemented.");
+          } } screenshotFormat={"image/webp"} screenshotQuality={0}        />
       </div>
       <Eye camera={camRef} />
     </>
