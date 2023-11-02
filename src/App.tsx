@@ -28,7 +28,9 @@ export default function App() {
             throw new Error("Function not implemented.");
           } } screenshotFormat={"image/webp"} screenshotQuality={0}        />
       </div>
-      <Eye camera={camRef} />
+      <div>
+        <Eye camera={camRef} />
+      </div>
     </>
   );
 }

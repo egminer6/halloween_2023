@@ -115,9 +115,28 @@ export default function Eye(props: IEyeProps) {
               const tx = faces.get(0).x;
               const ty = faces.get(0).y;
               const base_y = -200;
-              const base_x = 
+              const base_x = 0;
               
-              el.style.transform = "translate(" + (tx) + "px," + (base_y + ty) + "px)";
+              const clamp = (min : number, val : number, max : number ) => {
+                if ( val < min ) {
+                  val = min;
+                } 
+                if ( val > max ) {
+                  val = max;
+                }
+                return val;
+              };
+
+              const nx = clamp( 180, (base_x + tx), 450 );
+              const ny = clamp( -50, (base_y + ty), 50 );
+
+              console.log( `pupil x ${base_x}+${tx} y ${base_y}+${ty} `);
+
+              const x = nx;
+              const y = ny;
+              
+              console.log( `pupil nx ${nx} ny ${ny} x ${x} y ${y}`);
+              el.style.transform = "translate(" + x + "px," + y + "px)";
             }
 
             for (let i = 0; i < faces.size(); ++i) {
@@ -158,13 +177,13 @@ export default function Eye(props: IEyeProps) {
 
   return (
     <>
-      <div style={{ ...props.style }}>
-        <canvas ref={destRef} />
-      </div>
-      <div className="eyeContainer" style={{position:"relative", width:"640px" }}>
+      <div className="eyeContainer" style={{position:"relative", top: "0px", left:"-320px", width:"640px" }}>
         <img className="eyeBackgroundImg" ref={ eyeBackgroundRef } src="/images/eye_background.png" style={{ position: "absolute", top: 0, zIndex: 30 }}/>
         <img className="eyePupilImg" ref={ eyePupilRef } src="/images/eye_pupil.png" style={{ position: "absolute", top: "30px", left: "200px", zIndex: 20 }} />
         <img className="eyeIrisImg" ref={ eyeIrisRef } src="/images/eye_iris.png" style={{ position: "absolute", top: 0, zIndex: 10 }} />
+      </div>
+      <div style={{ ...props.style }}>
+        <canvas ref={destRef} />
       </div>
     </>
   );
